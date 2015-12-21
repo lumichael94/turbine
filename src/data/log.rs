@@ -1,7 +1,9 @@
-extern crate postgres;
+use postgres::Connection;
+use bincode::SizeLimit;
+use bincode::rustc_serialize::{encode, decode};
+use rustc_serialize::{Encodable};
 
-use self::postgres::Connection;
-
+#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
 pub struct Log {
     pub hash:       String,     //  Log Hash
     pub state:      String,     //  Hash of the state
@@ -73,4 +75,18 @@ pub fn create_log_table(conn: &Connection){
 // Input    conn    Database connection.
 pub fn drop_log_table(conn: &Connection){
     conn.execute("DROP TABLE IF EXISTS log", &[]).unwrap();
+}
+
+// Converts log struct to byte vector.
+// Input    l           Log struct to convert.
+// Output   Vec<u8>     Converted byte vector.
+pub fn log_to_vec(l: &Log)-> Vec<u8>{
+    encode(l, SizeLimit::Infinite).unwrap()
+}
+
+// Converts byte vector to account log.
+// Input    raw_l     Byte vector to convert.
+// Output   log         Converted log.
+pub fn vec_to_log(raw_l: &Vec<u8>) -> Log{
+    decode(&raw_l[..]).unwrap()
 }

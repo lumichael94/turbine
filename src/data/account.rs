@@ -1,6 +1,10 @@
-extern crate postgres;
-use self::postgres::Connection;
+use postgres::Connection;
+use bincode::SizeLimit;
+use bincode::rustc_serialize::{encode, decode};
+use rustc_serialize::{Encodable};
 
+
+#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
 pub struct Account{
     pub address     : String,
     pub fuel        : i64,
@@ -112,10 +116,16 @@ pub fn account_exist(add: &str, conn: &Connection) -> bool{
     }
 }
 
-// Returns the state nonce of an account
-// Input    add     Address of account to retrieve
-// Input    conn    Database connection.
-pub fn get_state_nonce(add: &str, conn: &Connection) -> i64{
-    let acc = get_account(add, conn);
-    return acc.state_n;
+// Converts account struct to byte vector.
+// Input    acc         Account struct to convert.
+// Output   Vec<u8>     Converted byte vector.
+pub fn acc_to_vec(a: &Account)-> Vec<u8>{
+    encode(a, SizeLimit::Infinite).unwrap()
+}
+
+// Converts byte vector to account struct.
+// Input    raw_acc     Byte vector to convert.
+// Output   account     Converted account.
+pub fn vec_to_acc(raw_acc: &Vec<u8>) -> Account{
+    decode(&raw_acc[..]).unwrap()
 }

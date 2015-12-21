@@ -1,7 +1,9 @@
-extern crate postgres;
+use postgres::Connection;
+use bincode::SizeLimit;
+use bincode::rustc_serialize::{encode, decode};
+use rustc_serialize::{Encodable};
 
-use self::postgres::Connection;
-
+#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
 pub struct State {
     pub hash            :   String,
     pub nonce           :   i64,
@@ -72,4 +74,18 @@ pub fn create_state_table(conn: &Connection){
 // Input    conn    Database connection.
 pub fn drop_state_table(conn: &Connection){
     conn.execute("DROP TABLE IF EXISTS state", &[]).unwrap();
+}
+
+// Converts state struct to byte vector.
+// Input    s           State struct to convert.
+// Output   Vec<u8>     Converted byte vector.
+pub fn state_to_vec(s: &State)-> Vec<u8>{
+    encode(s, SizeLimit::Infinite).unwrap()
+}
+
+// Converts byte vector to state struct.
+// Input    raw_s       Byte vector to convert.
+// Output   state       Converted state.
+pub fn vec_to_state(raw_s: Vec<u8>) -> State{
+    decode(&raw_s[..]).unwrap()
 }
