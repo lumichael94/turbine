@@ -1,4 +1,4 @@
-pub struct tenv {
+pub struct Tenv {
     pub t_stat:     String,     // Thread's Status
     pub n_stat:     String,     // Node's Status
     pub n_add:      String,     // Node's Account Hash

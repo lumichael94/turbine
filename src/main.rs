@@ -5,6 +5,7 @@ extern crate bincode;
 pub mod data;
 pub mod engine;
 pub mod util;
+pub mod network;
 
 use engine::turbo;
 

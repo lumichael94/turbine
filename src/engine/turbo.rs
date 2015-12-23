@@ -24,7 +24,15 @@ pub fn read_command() -> bool{
     let mut flags = helper::vec_to_string(&raw_vec);
     let command: String = flags.remove(0);
     let _ = match &command[..]{
+        "turbo"         => return false,
         "quit"|"exit"   => return false,
+        "account"       => return false,
+        "log"           => return false,
+        "state"         => return false,
+        "peer"          => return false,
+        "profile"       => return false,
+        "database"      => return false,
+        "load"          => return false,
         _               => println!("=>> Did not recognize command, please try again."),
     };
     return true;
