@@ -1,9 +1,10 @@
 extern crate rand;
 extern crate crypto;
 extern crate rustc_serialize;
-extern crate postgres;
 extern crate chrono;
 use std::io::{self, Write, BufRead};
+
+// use rusqlite::Connection;
 
 
 // TODO: Fix these two functions.

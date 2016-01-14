@@ -1,4 +1,4 @@
-use postgres::Connection;
+use rusqlite::Connection;
 use bincode::SizeLimit;
 use bincode::rustc_serialize::{encode, decode};
 use rustc_serialize::{Encodable};
@@ -31,13 +31,13 @@ pub fn save_state(save_s: &State, conn: &Connection){
 // Output   state       Retrieved state struct.
 pub fn get_state(hash: &str, conn: &Connection) -> State{
     let maybe_stmt = conn.prepare("SELECT * FROM state WHERE hash = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let h: String = hash.to_string();
-    let rows = stmt.query(&[&h]).unwrap();
-    let row = rows.get(0);
+    let mut rows = stmt.query(&[&h]).unwrap();
+    let row = rows.next().unwrap().unwrap();
     State {
         nonce:      row.get(0),
         hash:       row.get(1),

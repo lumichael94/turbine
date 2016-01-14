@@ -1,15 +1,12 @@
 extern crate rand;
 extern crate crypto;
 extern crate rustc_serialize;
-extern crate postgres;
 extern crate chrono;
 
 use std::net::TcpStream;
-// use data::{account, log, state, tenv};
+// use rusqlite::Connection;
 use std::io::{Read, Write};
-// use postgres::Connection;
 use std::sync::{Arc, RwLock};
-// use std::collections::HashMap;
 
 //====================================================================
 // GENERAL PROTOCOL FUNCTIONS

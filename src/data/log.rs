@@ -1,4 +1,4 @@
-use postgres::Connection;
+use rusqlite::Connection;
 use bincode::SizeLimit;
 use bincode::rustc_serialize::{encode, decode};
 use rustc_serialize::{Encodable};
@@ -20,13 +20,14 @@ pub struct Log {
 // Output   log     Retrieved log struct.
 pub fn get_log (hash : &str, conn: &Connection) -> Log{
     let maybe_stmt = conn.prepare("SELECT * FROM log WHERE hash = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let i: String = hash.to_string();
-    let rows = stmt.query(&[&i]).unwrap();
-    let row = rows.get(0);
+
+    let mut rows = stmt.query(&[&i]).unwrap();
+    let row = rows.next().unwrap().unwrap();
     Log {
         hash        :   row.get(0),
         state       :   row.get(1),

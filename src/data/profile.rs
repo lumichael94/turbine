@@ -1,11 +1,9 @@
 extern crate rand;
 extern crate crypto;
-extern crate postgres;
 extern crate chrono;
 extern crate bincode;
 
-use self::postgres::Connection;
-
+use rusqlite::Connection;
 
 pub struct Profile{
     pub name        : String,       // Name of profile
@@ -67,7 +65,7 @@ pub fn drop_profile_table(conn: &Connection){
 // Output   Boolean     Profile exists?
 pub fn profile_exist(name: &str, conn: &Connection) -> bool{
     let maybe_stmt = conn.prepare("SELECT * FROM profile WHERE name = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
@@ -75,7 +73,7 @@ pub fn profile_exist(name: &str, conn: &Connection) -> bool{
     match rows {
         Err(_) => false,
         Ok(r) => {
-            if r.len() != 0 {
+            if r.size_hint().0 != 0 {
                 true
             } else {
                 false
@@ -89,12 +87,12 @@ pub fn profile_exist(name: &str, conn: &Connection) -> bool{
 // Output   i32         Number of saved profiles.
 pub fn num_profile(conn: &Connection) -> i32{
     let maybe_stmt = conn.prepare("SELECT * FROM profile");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let rows = stmt.query(&[]).unwrap();
-    return rows.len() as i32;
+    return rows.size_hint().0 as i32;
 }
 
 // Retreives a profile.
@@ -103,13 +101,13 @@ pub fn num_profile(conn: &Connection) -> i32{
 // Output   profile     Retrieved profile struct.
 pub fn get_profile(name: &str, conn: &Connection) -> Profile{
     let maybe_stmt = conn.prepare("SELECT * FROM profile WHERE name = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let n: String = name.to_string();
-    let rows = stmt.query(&[&n]).unwrap();
-    let row = rows.get(0);
+    let mut rows = stmt.query(&[&n]).unwrap();
+    let row = rows.next().unwrap().unwrap();
     Profile {
         name        : row.get(0),
         password    : row.get(1),
@@ -125,16 +123,16 @@ pub fn get_profile(name: &str, conn: &Connection) -> Profile{
 // Output   Result      Retrieves active profile or error message.
 pub fn get_active(conn: &Connection) -> Result<Profile, &str> {
     let maybe_stmt = conn.prepare("SELECT * FROM profile WHERE active = true");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let rows = stmt.query(&[]);
     match rows {
         Err(_) => Err("Error retrieving active profile."),
-        Ok(r) => {
-            if r.len() != 0 {
-                let row = r.get(0);
+        Ok(mut r) => {
+            if r.size_hint().0 != 0 {
+                let row = r.next().unwrap().unwrap();
                 let p = Profile {
                     name        : row.get(0),
                     password    : row.get(1),

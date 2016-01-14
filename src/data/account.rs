@@ -1,4 +1,4 @@
-use postgres::Connection;
+use rusqlite::Connection;
 use bincode::SizeLimit;
 use bincode::rustc_serialize::{encode, decode};
 use rustc_serialize::{Encodable};
@@ -74,22 +74,23 @@ pub fn drop_account_table(conn: &Connection){
 // Output   account     Retrieved account struct.
 pub fn get_account(add: &str, conn: &Connection) -> Account{
     let maybe_stmt = conn.prepare("SELECT * FROM account WHERE address = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
     let a: String = add.to_string();
-    let rows = stmt.query(&[&a]).unwrap();
-    let row = rows.get(0);
+
+    let mut rows = stmt.query(&[&a]).unwrap();
+    let row = rows.next().unwrap().unwrap();
     Account {
-        address     : row.get(0),
-        fuel        : row.get(1),
-        log_n       : row.get(2),
-        state_n     : row.get(3),
-        public_key  : row.get(4),
-        code        : row.get(5),
-        memory      : row.get(6),
-        pc          : row.get(7),
+            address     : row.get(0),
+            fuel        : row.get(1),
+            log_n       : row.get(2),
+            state_n     : row.get(3),
+            public_key  : row.get(4),
+            code        : row.get(5),
+            memory      : row.get(6),
+            pc          : row.get(7),
     }
 }
 
@@ -99,7 +100,7 @@ pub fn get_account(add: &str, conn: &Connection) -> Account{
 // Output   Boolean     Account exists?
 pub fn account_exist(add: &str, conn: &Connection) -> bool{
     let maybe_stmt = conn.prepare("SELECT * FROM account WHERE address = $1");
-    let stmt = match maybe_stmt{
+    let mut stmt = match maybe_stmt{
         Ok(stmt) => stmt,
         Err(err) => panic!("Error preparing statement: {:?}", err)
     };
@@ -107,7 +108,7 @@ pub fn account_exist(add: &str, conn: &Connection) -> bool{
     match rows {
         Err(_) => false,
         Ok(r) => {
-            if r.len() != 0 {
+            if r.size_hint().0 != 0 {
                 true
             } else {
                 false

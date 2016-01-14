@@ -1,4 +1,4 @@
-extern crate postgres;
+extern crate rusqlite;
 extern crate rustc_serialize;
 extern crate bincode;
 
